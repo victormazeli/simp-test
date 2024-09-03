@@ -5,10 +5,10 @@ import (
     "fmt"
     "log"
     "net/http"
-    "math"
 )
 
 func calculateHandler(w http.ResponseWriter, r *http.Request) {
+    // Declare a slice of int32 to hold the incoming numbers
     var numbers []int32
 
     // Decode JSON array directly into the numbers slice
@@ -18,25 +18,17 @@ func calculateHandler(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    // Initialize sum as an int64 to prevent overflow
+    // Calculate the sum of the numbers using int64 to prevent overflow
     var sum int64
-
-    // Calculate the sum of the numbers
     for _, num := range numbers {
         sum += int64(num)
     }
 
-    // Check if sum exceeds int32 limits
-    if sum > math.MaxInt32 || sum < math.MinInt32 {
-        http.Error(w, "Sum exceeds int32 range.", http.StatusBadRequest)
-        return
-    }
-
-    // Cast sum back to int32 for output
+    // Create the result object with int64 result
     result := struct {
-        Result int32 `json:"result"`
+        Result int64 `json:"result"`
     }{
-        Result: int32(sum),
+        Result: sum,
     }
 
     // Set the response header to JSON and return the result
