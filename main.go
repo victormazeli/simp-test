@@ -5,6 +5,7 @@ import (
     "fmt"
     "log"
     "net/http"
+    "strconv"
 )
 
 func calculateHandler(w http.ResponseWriter, r *http.Request) {
@@ -18,25 +19,18 @@ func calculateHandler(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    // Calculate the sum of the numbers using int64 to prevent overflow
+    // Calculate the sum of the numbers using int64 to handle large sums
     var sum int64
     for _, num := range numbers {
         sum += int64(num)
     }
 
-    // Create the result object with int64 result
-    result := struct {
-        Result int64 `json:"result"`
-    }{
-        Result: sum,
-    }
+    // Convert sum to string to send as raw response
+    result := strconv.FormatInt(sum, 10)
 
-    // Set the response header to JSON and return the result
-    w.Header().Set("Content-Type", "application/json")
-    if err := json.NewEncoder(w).Encode(result); err != nil {
-        http.Error(w, "Failed to encode response.", http.StatusInternalServerError)
-        return
-    }
+    // Set the response header to plain text and return the result as a raw string
+    w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+    w.Write([]byte(result))
 }
 
 func main() {
