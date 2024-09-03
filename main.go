@@ -7,19 +7,12 @@ import (
     "net/http"
 )
 
-type NumbersRequest struct {
-    Numbers []int32 `json:"numbers"`
-}
-
-type ResultResponse struct {
-    Result int32 `json:"result"`
-}
-
 func calculateHandler(w http.ResponseWriter, r *http.Request) {
-    var numbersReq NumbersRequest
+    // Declare a slice of int32 to hold the incoming numbers
+    var numbers []int32
 
-    // Decode JSON body into NumbersRequest struct
-    err := json.NewDecoder(r.Body).Decode(&numbersReq)
+    // Decode JSON array directly into the numbers slice
+    err := json.NewDecoder(r.Body).Decode(&numbers)
     if err != nil {
         http.Error(w, "Invalid input. Please provide a JSON array of int32 numbers.", http.StatusBadRequest)
         return
@@ -27,14 +20,23 @@ func calculateHandler(w http.ResponseWriter, r *http.Request) {
 
     // Calculate the sum of the numbers
     var sum int32
-    for _, num := range numbersReq.Numbers {
+    for _, num := range numbers {
         sum += num
     }
 
-    // Return the result as JSON
-    result := ResultResponse{Result: sum}
+    // Create the result object
+    result := struct {
+        Result int32 `json:"result"`
+    }{
+        Result: sum,
+    }
+
+    // Set the response header to JSON and return the result
     w.Header().Set("Content-Type", "application/json")
-    json.NewEncoder(w).Encode(result)
+    if err := json.NewEncoder(w).Encode(result); err != nil {
+        http.Error(w, "Failed to encode response.", http.StatusInternalServerError)
+        return
+    }
 }
 
 func main() {
